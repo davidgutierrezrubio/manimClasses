@@ -1,5 +1,5 @@
 from manimlib.imports import *
-from myProjects.Polyhedra import *
+from Polyhedra import *
 class DodecahedronGraph(ThreeDScene):
     def construct(self):
         # self.set_camera_orientation(phi=80 * DEGREES,theta=45*DEGREES,distance=6)
