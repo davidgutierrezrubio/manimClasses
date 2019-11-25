@@ -96,13 +96,7 @@ class pruebaRecolocate(Scene):
 
 
         anim=recolocateFromToSimple(tri,E,A,-PI/3)
-        # self.play(Recolocate(tri,D,E,A,C))
         self.play(anim)
-
-        # for i in range(11):
-        #     cua2=anim.applyRtoObj(cua.copy(),i/10)
-        #     print("cua2=",cua2)
-        #     self.play(ShowCreation(cua2))
 
 
 
