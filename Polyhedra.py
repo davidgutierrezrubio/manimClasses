@@ -41,7 +41,6 @@ class Polyhedra(Group):
                 self.numbers.append(t)
                 counter+=1
         todo=self.vertices+self.edges+self.numbers
-        print(todo)
         self.GrVertices=Group(*self.vertices)
         self.GrEdges=Group(*self.edges)
         self.GrNumbers=Group(*self.numbers)
