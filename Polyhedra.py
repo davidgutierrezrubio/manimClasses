@@ -13,7 +13,7 @@ class Polyhedra(Group):
     TODO: Use the **kwargs style of manimlib
     TODO: Implement scale or rotate funcions, subclass MObject instead of Group
     """
-    def __init__(self,pointList,edgeList,vertexNumbersP=False,vertexObjectP=Dot()):
+    def __init__(self,pointList,edgeList,facesList,vertexNumbersP=False,vertexObjectP=Dot(shade_in_3d=True),showFacesP=True):
         self.vertexObject=vertexObjectP
         self.edgeList=edgeList
         self.vertices=list(map(lambda a: self.vertexObject.copy().shift(np.array(a)),pointList))
@@ -25,7 +25,7 @@ class Polyhedra(Group):
         for edge in edgeList:
             ori=self.vertices[edge[0]]
             des=self.vertices[edge[1]]
-            edgeLine=Line(ori,des)
+            edgeLine=Line(ori,des,shade_in_3d=True)
             edgeLine.add_updater(update_func_aristas(ori,des))
             self.edges.append(edgeLine)
         self.numbers=[]
@@ -41,10 +41,18 @@ class Polyhedra(Group):
                 self.numbers.append(t)
                 counter+=1
         todo=self.vertices+self.edges+self.numbers
+        self.faces=[]
+        if showFacesP:
+            for f in facesList:
+                pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
+                pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
+                pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=True)
+                self.faces.append(pol)
+
         self.GrVertices=Group(*self.vertices)
         self.GrEdges=Group(*self.edges)
         self.GrNumbers=Group(*self.numbers)
-        super().__init__(*self.vertices,*self.edges,*self.numbers)
+        super().__init__(*self.vertices,*self.edges,*self.numbers,*self.faces)
 
     def getVertexObject(self):
         return self.vertexObject.copy()
@@ -133,7 +141,7 @@ class Dodecahedron(Polyhedra):
         [13,15]#29
         ]
         listaPuntos=list(map(lambda p: np.array(p),listaPuntos))#Convert to np.array
-        listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
+        # listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
         #Rotate the vertices to lay on one face
         if rotate:
             co=np.cos(np.arctan(goldrat))
@@ -142,7 +150,7 @@ class Dodecahedron(Polyhedra):
         #Shift on the z-axis to touch the ground
         if put_on_ground:
             listaPuntos=list(map(lambda p:[p[0],p[1],p[2]+goldrat],listaPuntos))
-        super().__init__(listaPuntos,listaAristas,vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject)
+        super().__init__(listaPuntos,listaAristas,[],vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject)
 
 
 
@@ -152,7 +160,7 @@ class Cube(Polyhedra):
 
     """
 
-    def __init__(self,vertexNumbers=False,vertexObject=Dot()):
+    def __init__(self,vertexNumbers=False,showFaces=True,vertexObject=Dot()):
         listaPuntos=[\
         [1,1,1],#0
         [1,1,-1],#1
@@ -177,6 +185,14 @@ class Cube(Polyhedra):
         [7,5],#10
         [7,6]#11
         ]
+        facesList=[\
+        [1,3,7,5],
+        [0,1,3,2],
+        [4,5,7,6],
+        [1,5,4,0],
+        [3,7,6,2],
+        [2,0,4,6]
+        ]
         listaPuntos=list(map(lambda p: np.array(p),listaPuntos))#Convert to np.array
-        listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
-        super().__init__(listaPuntos,listaAristas,vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject)
+        # listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
+        super().__init__(listaPuntos,listaAristas,facesList,vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject,showFacesP=showFaces)
