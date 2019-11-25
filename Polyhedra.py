@@ -134,21 +134,21 @@ class Dodecahedron(Polyhedra):
         ]
         listaPuntos=list(map(lambda p: np.array(p),listaPuntos))#Convert to np.array
         listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
-        #Giro los puntos para que la base del dodecahedro sea horizontal
+        #Rotate the vertices to lay on one face
         if rotate:
             co=np.cos(np.arctan(goldrat))
             se=np.sin(np.arctan(goldrat))
-            listaPuntos=list(map(lambda p:[p[0],p[1]*se+p[2]*co,p[1]*co-p[2]*se+goldrat],listaPuntos))
-            # listaPuntosGirados=list(map(lambda p:[p[0]*co+p[1]*se,-p[0]*se+p[1]*co,p[2]],listaPuntosGirados))
+            listaPuntos=list(map(lambda p:[p[0],p[1]*se+p[2]*co,p[1]*co-p[2]*se],listaPuntos))
+        #Shift on the z-axis to touch the ground
+        if put_on_ground:
+            listaPuntos=list(map(lambda p:[p[0],p[1],p[2]+goldrat],listaPuntos))
         super().__init__(listaPuntos,listaAristas,vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject)
 
 
 
 class Cube(Polyhedra):
     """
-    Dodecahedron. Coordinates of points taken from https://en.wikipedia.org/wiki/Regular_dodecahedron
-    These points are centered on ORIGIN and not in intuitive equilibrium. Parameters
-    rotate and put_on_ground control where to transform in order to lay on one of its faces.
+    A cube of edge length 2 and centered at ORIGIN
 
     """
 
