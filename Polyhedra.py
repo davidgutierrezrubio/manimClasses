@@ -16,19 +16,31 @@ if __name__ == "__main__":
     os.system(command_A + command_B)
 class testPol(ThreeDScene):
     def construct(self):
-        self.set_camera_orientation(phi=45*DEGREES,theta=45*DEGREES)
+        self.set_camera_orientation(phi=45*DEGREES)
         # co=Cube(showVertexNumbers=True,showFaces=True,showVertex=False)
-        co=Dodecahedron(showEdges=False,showVertex=False)
+        co=Dodecahedron(showVertexNumbers=False)
+        # self.add(Square(fill_color=BLUE,fill_opacity=1,shade_in_3d=True).scale(2))
         self.add(co)
-        self.play(co.vertices[4].shift,3*UP)
-        self.wait()
+        colores=list(COLOR_MAP.values())
+        anims1=[]
+        anims2=[]
+        for f in co.faces:
+            f.set_color(colores[np.random.randint(0,len(COLOR_MAP))])
+            anims1.append(ApplyMethod(f.scale,.3))
+            anims2.append(ApplyMethod(f.scale,1/.3))
+        self.begin_ambient_camera_rotation(rate=0.4)
+        self.play(*anims1,run_time=3)
+        self.wait(2)
+        self.play(*anims2,run_time=3)
+        self.wait(10)
+        self.stop_ambient_camera_rotation()
 
 class Polyhedra(Group):
     """
     This class represents a general Polyhedra
     pointList: Array of np.array() coordinates of vertices.
 
-    vertexNumbers: if true, add a Decimal object next_to each vertex, denoting its number in the array.
+    showVertexNumbers: if true, add a Decimal object next_to each vertex, denoting its number in the array.
     Mostly for debugging purposes or controlling where is each vertex.
     vertexObject is an instace of a MObject, to use for vertex. You can use Sphere() but is slooooow
 
@@ -36,8 +48,8 @@ class Polyhedra(Group):
     TODO: Implement scale or rotate funcions, subclass MObject instead of Group
     """
     CONFIG = {
-        "showVertex":True,
-        "showEdges": True,
+        "showVertices":True,
+        "showEdges": True,#Doesn't work yet
         "showFaces": True,
         "showVertexNumbers": False
     }
@@ -47,13 +59,13 @@ class Polyhedra(Group):
         self.vertexObjectP=vertexObjectP
         self.vertices=list(map(lambda a: self.vertexObjectP.copy().shift(np.array(a)),pointList))
 
-        if not self.showVertex:
+        if not self.showVertices:
             for v in self.vertices:
                 v.fade(darkness=1) #Fade to darkness=1 makes invisible
 
         #Update function to ensure edges are always connected to its vertices
         def update_func_aristas(ori,des):
-            return lambda r:r.become(Line(ori.get_center(),des.get_center()))#Become function is problematic
+            return lambda r:r.become(Line(ori.get_center(),des.get_center(),shade_in_3d=True))#Become function is problematic
         self.edges=[]
         for edge in edgeList:
             ori=self.vertices[edge[0]]
@@ -190,6 +202,20 @@ class Dodecahedron(Polyhedra):
         [6,19],#28
         [13,15]#29
         ]
+        facesList=[\
+        [1,16,0,8,9],#0
+        [1,9,5,15,13],#1
+        [15,5,18,19,7],#2
+        [19,7,11,10,6],#3
+        [10,11,3,17,2],#4
+        [17,2,12,0,16],#5
+        [18,4,8,9,5],#6
+        [7,11,3,13,15],#7
+        [4,8,0,12,14],#8
+        [6,19,18,4,14],#9
+        [1,13,3,17,16],#10
+        [10,6,14,12,2]#11
+        ]
         pointList=list(map(lambda p: np.array(p),pointList))#Convert to np.array
         #Rotate the vertices to lay in one face
         if self.lay_in_one_face:
@@ -199,7 +225,7 @@ class Dodecahedron(Polyhedra):
         #Shift on the z-axis to touch the ground
         if self.put_on_ground:
             pointList=list(map(lambda p:[p[0],p[1],p[2]+goldrat],pointList))
-        super().__init__(pointList,edgeList,[],**kwargs)
+        super().__init__(pointList,edgeList,facesList,**kwargs)
 
 
 
