@@ -17,8 +17,10 @@ if __name__ == "__main__":
 class testPol(ThreeDScene):
     def construct(self):
         self.set_camera_orientation(phi=45*DEGREES,theta=45*DEGREES)
-        co=Cube(showVertexNumbers=True,showFaces=True)
+        # co=Cube(showVertexNumbers=True,showFaces=True,showVertex=False)
+        co=Dodecahedron(showEdges=False,showVertex=False)
         self.add(co)
+        self.play(co.vertices[4].shift,3*UP)
         self.wait()
 
 class Polyhedra(Group):
@@ -35,8 +37,9 @@ class Polyhedra(Group):
     """
     CONFIG = {
         "showVertex":True,
-        "showVertexNumbers": False,
-        "showFaces": False
+        "showEdges": True,
+        "showFaces": True,
+        "showVertexNumbers": False
     }
     def __init__(self,pointList,edgeList,facesList,vertexObjectP=Dot(shade_in_3d=True),**kwargs):
         digest_config(self,kwargs)
@@ -44,9 +47,13 @@ class Polyhedra(Group):
         self.vertexObjectP=vertexObjectP
         self.vertices=list(map(lambda a: self.vertexObjectP.copy().shift(np.array(a)),pointList))
 
+        if not self.showVertex:
+            for v in self.vertices:
+                v.fade(darkness=1) #Fade to darkness=1 makes invisible
+
         #Update function to ensure edges are always connected to its vertices
         def update_func_aristas(ori,des):
-            return lambda r:r.become(Line(ori.get_center(),des.get_center()))
+            return lambda r:r.become(Line(ori.get_center(),des.get_center()))#Become function is problematic
         self.edges=[]
         for edge in edgeList:
             ori=self.vertices[edge[0]]
@@ -54,6 +61,11 @@ class Polyhedra(Group):
             edgeLine=Line(ori,des,shade_in_3d=True)
             edgeLine.add_updater(update_func_aristas(ori,des))
             self.edges.append(edgeLine)
+
+        if not self.showEdges: #TODO This doesn't work because of become function in the update
+            for e in self.edges:
+                e.fade(darkness=1) #Fade to darkness=1 makes invisible
+
         self.numbers=[]
         if self.showVertexNumbers:#Add number to each vertex
             #Update function to ensure numbers are always next_to its vertices
@@ -78,6 +90,9 @@ class Polyhedra(Group):
         self.GrVertices=Group(*self.vertices)
         self.GrEdges=Group(*self.edges)
         self.GrNumbers=Group(*self.numbers)
+
+
+
         super().__init__(*self.vertices,*self.edges,*self.numbers,*self.faces)
 
     def getVertexObject(self):
