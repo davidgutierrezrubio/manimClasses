@@ -1,4 +1,25 @@
+#!/usr/bin/env python
+
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+sys.path.insert(1, 'c:\\manim\\manim-3feb')
 from manimlib.imports import *
+import myProjects.Polyhedra as pol
+
+
+if __name__ == "__main__":
+    os.chdir('c:\\manim\\manim-3feb')
+    module_name = 'myProjects\\'+ os.path.basename(__file__)
+    print(module_name)
+    command_A = "python -m manim "
+    command_B = module_name +" " +"testPol"+" -pl"
+    os.system(command_A + command_B)
+class testPol(ThreeDScene):
+    def construct(self):
+        self.set_camera_orientation(phi=45*DEGREES,theta=45*DEGREES)
+        co=Cube(showVertexNumbers=True,showFaces=True)
+        self.add(co)
+        self.wait()
 
 class Polyhedra(Group):
     """
@@ -10,13 +31,18 @@ class Polyhedra(Group):
     vertexObject is an instace of a MObject, to use for vertex. You can use Sphere() but is slooooow
 
     TODO: Add faces
-    TODO: Use the **kwargs style of manimlib
     TODO: Implement scale or rotate funcions, subclass MObject instead of Group
     """
-    def __init__(self,pointList,edgeList,facesList,vertexNumbersP=False,vertexObjectP=Dot(shade_in_3d=True),showFacesP=True):
-        self.vertexObject=vertexObjectP
+    CONFIG = {
+        "showVertex":True,
+        "showVertexNumbers": False,
+        "showFaces": False
+    }
+    def __init__(self,pointList,edgeList,facesList,vertexObjectP=Dot(shade_in_3d=True),**kwargs):
+        digest_config(self,kwargs)
         self.edgeList=edgeList
-        self.vertices=list(map(lambda a: self.vertexObject.copy().shift(np.array(a)),pointList))
+        self.vertexObjectP=vertexObjectP
+        self.vertices=list(map(lambda a: self.vertexObjectP.copy().shift(np.array(a)),pointList))
 
         #Update function to ensure edges are always connected to its vertices
         def update_func_aristas(ori,des):
@@ -29,7 +55,7 @@ class Polyhedra(Group):
             edgeLine.add_updater(update_func_aristas(ori,des))
             self.edges.append(edgeLine)
         self.numbers=[]
-        if vertexNumbersP:#Add number to each vertex
+        if self.showVertexNumbers:#Add number to each vertex
             #Update function to ensure numbers are always next_to its vertices
             def update_func_numberVertices(ori):
                 return lambda t: t.next_to(ori)
@@ -42,7 +68,7 @@ class Polyhedra(Group):
                 counter+=1
         todo=self.vertices+self.edges+self.numbers
         self.faces=[]
-        if showFacesP:
+        if self.showFaces:
             for f in facesList:
                 pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
                 pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
@@ -56,12 +82,17 @@ class Polyhedra(Group):
 
     def getVertexObject(self):
         return self.vertexObject.copy()
-    def getAdjacentVertices(self,vObj,onlyNumbers=False):
+    def getAdjacentVertices(self,vertex,onlyNumbers=False):
         """
+
         Return all adjacent vertices to a given one.
+        vertex: may be the MObject or the index of the vertex
         onlyNumbers: if true, return only numbers of vertices, not the objects
         """
-        numV=self.vertices.index(vObj) #Number of vertex
+        if isinstance(vertex,int):
+            numV=vertex
+        else:
+            numV=self.vertices.index(vertex) #Number of vertex
         adjacentList=[]
         for edge in self.edgeList:
             if edge[0]==numV:
@@ -83,10 +114,14 @@ class Dodecahedron(Polyhedra):
     rotate and put_on_ground control where to transform in order to lay on one of its faces.
 
     """
-
-    def __init__(self,rotate=True,put_on_ground=True,vertexNumbers=False,vertexObject=Dot()):
+    CONFIG = {
+        "lay_in_one_face": True,
+        "put_on_ground": True,
+    }
+    def __init__(self,**kwargs):
+        digest_config(self,kwargs)
         goldrat=(1+np.sqrt(5))/2
-        listaPuntos=[\
+        pointList=[\
         [1,1,1],#0
         [1,1,-1],#1
         [1,-1,1],#2
@@ -108,7 +143,7 @@ class Dodecahedron(Polyhedra):
         [-goldrat,1/goldrat,0],#18
         [-goldrat,-1/goldrat,0]#19
         ]
-        listaAristas=[\
+        edgeList=[\
         [0,8],#0
         [8,4],#1
         [4,14],#2
@@ -140,17 +175,16 @@ class Dodecahedron(Polyhedra):
         [6,19],#28
         [13,15]#29
         ]
-        listaPuntos=list(map(lambda p: np.array(p),listaPuntos))#Convert to np.array
-        # listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
-        #Rotate the vertices to lay on one face
-        if rotate:
+        pointList=list(map(lambda p: np.array(p),pointList))#Convert to np.array
+        #Rotate the vertices to lay in one face
+        if self.lay_in_one_face:
             co=np.cos(np.arctan(goldrat))
             se=np.sin(np.arctan(goldrat))
-            listaPuntos=list(map(lambda p:[p[0],p[1]*se+p[2]*co,p[1]*co-p[2]*se],listaPuntos))
+            pointList=list(map(lambda p:[p[0],p[1]*se+p[2]*co,p[1]*co-p[2]*se],pointList))
         #Shift on the z-axis to touch the ground
-        if put_on_ground:
-            listaPuntos=list(map(lambda p:[p[0],p[1],p[2]+goldrat],listaPuntos))
-        super().__init__(listaPuntos,listaAristas,[],vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject)
+        if self.put_on_ground:
+            pointList=list(map(lambda p:[p[0],p[1],p[2]+goldrat],pointList))
+        super().__init__(pointList,edgeList,[],**kwargs)
 
 
 
@@ -160,8 +194,8 @@ class Cube(Polyhedra):
 
     """
 
-    def __init__(self,vertexNumbers=False,showFaces=True,vertexObject=Dot()):
-        listaPuntos=[\
+    def __init__(self,**kwargs):
+        pointList=[\
         [1,1,1],#0
         [1,1,-1],#1
         [1,-1,1],#2
@@ -171,7 +205,7 @@ class Cube(Polyhedra):
         [-1,-1,1],#6
         [-1,-1,-1]#7
         ]
-        listaAristas=[\
+        edgeList=[\
         [0,1],#0
         [0,2],#1
         [0,4],#2
@@ -193,6 +227,5 @@ class Cube(Polyhedra):
         [3,7,6,2],
         [2,0,4,6]
         ]
-        listaPuntos=list(map(lambda p: np.array(p),listaPuntos))#Convert to np.array
-        # listaAristas=list(map(lambda p: np.array(p),listaAristas))#Convert to np.array
-        super().__init__(listaPuntos,listaAristas,facesList,vertexNumbersP=vertexNumbers,vertexObjectP=vertexObject,showFacesP=showFaces)
+        pointList=list(map(lambda p: np.array(p),pointList))#Convert to np.array
+        super().__init__(pointList,edgeList,facesList,**kwargs)
