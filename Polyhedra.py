@@ -17,8 +17,8 @@ if __name__ == "__main__":
 class testPol(ThreeDScene):
     def construct(self):
         self.set_camera_orientation(phi=45*DEGREES)
-        # co=Cube(showVertexNumbers=True,showFaces=True,showVertex=False)
-        co=Dodecahedron(showVertexNumbers=False)
+        co=Cube(showVertexNumbers=True,showVertices=False,showEdges=True)
+        # co=Dodecahedron(showVertexNumbers=False,showVertices=False,showEdges=False,showFaces=True)
         # self.add(Square(fill_color=BLUE,fill_opacity=1,shade_in_3d=True).scale(2))
         self.add(co)
         colores=list(COLOR_MAP.values())
@@ -26,13 +26,16 @@ class testPol(ThreeDScene):
         anims2=[]
         for f in co.faces:
             f.set_color(colores[np.random.randint(0,len(COLOR_MAP))])
-            anims1.append(ApplyMethod(f.scale,.3))
+            anims1.append(ApplyMethod(f.scale,.95))
             anims2.append(ApplyMethod(f.scale,1/.3))
-        self.begin_ambient_camera_rotation(rate=0.4)
+        self.begin_ambient_camera_rotation(rate=0.6)
         self.play(*anims1,run_time=3)
-        self.wait(2)
-        self.play(*anims2,run_time=3)
-        self.wait(10)
+        # self.wait(2)
+        # self.play(*anims2,run_time=3)
+        self.play(ApplyMethod(co.vertices[0].shift,3*RIGHT))
+        self.wait(1)
+        self.play(ApplyMethod(co.vertices[0].shift,3*LEFT))
+        self.wait(3)
         self.stop_ambient_camera_rotation()
 
 class Polyhedra(Group):
@@ -49,40 +52,54 @@ class Polyhedra(Group):
     """
     CONFIG = {
         "showVertices":True,
-        "showEdges": True,#Doesn't work yet
-        "showFaces": True,
+        "showEdges": True,
+        "showFaces": False, #Faces are still buggy
         "showVertexNumbers": False
     }
     def __init__(self,pointList,edgeList,facesList,vertexObjectP=Dot(shade_in_3d=True),**kwargs):
         digest_config(self,kwargs)
+        if self.showVertices:
+            self.fadeParamVertices=0
+        else:
+            self.fadeParamVertices=1
+
+        if self.showEdges:
+            self.fadeParamEdges=0
+        else:
+            self.fadeParamEdges=1
+
+        if self.showFaces:
+            self.fadeParamFaces=0
+        else:
+            self.fadeParamFaces=1
+
         self.edgeList=edgeList
         self.vertexObjectP=vertexObjectP
-        self.vertices=list(map(lambda a: self.vertexObjectP.copy().shift(np.array(a)),pointList))
-
-        if not self.showVertices:
-            for v in self.vertices:
-                v.fade(darkness=1) #Fade to darkness=1 makes invisible
+        self.vertices=list(map(lambda a: self.vertexObjectP.copy().fade(self.fadeParamVertices).shift(np.array(a)),pointList))
 
         #Update function to ensure edges are always connected to its vertices
-        def update_func_aristas(ori,des):
-            return lambda r:r.become(Line(ori.get_center(),des.get_center(),shade_in_3d=True))#Become function is problematic
+        def update_func_edges(ori,des):
+            return lambda r:r.become(Line(ori.get_center(),des.get_center(),shade_in_3d=True).fade(self.fadeParamEdges))#Become function is problematic
         self.edges=[]
         for edge in edgeList:
             ori=self.vertices[edge[0]]
             des=self.vertices[edge[1]]
-            edgeLine=Line(ori,des,shade_in_3d=True)
-            edgeLine.add_updater(update_func_aristas(ori,des))
+            edgeLine=Line(ori,des,shade_in_3d=True).fade(self.fadeParamEdges)
+            edgeLine.add_updater(update_func_edges(ori,des))
             self.edges.append(edgeLine)
 
-        if not self.showEdges: #TODO This doesn't work because of become function in the update
-            for e in self.edges:
-                e.fade(darkness=1) #Fade to darkness=1 makes invisible
+        self.faces=[]
+        for f in facesList:
+            pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
+            pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
+            pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=True).fade(self.fadeParamFaces)
+            self.faces.append(pol)
 
         self.numbers=[]
         if self.showVertexNumbers:#Add number to each vertex
             #Update function to ensure numbers are always next_to its vertices
             def update_func_numberVertices(ori):
-                return lambda t: t.next_to(ori)
+                return lambda t: t.move_to(ori)
             counter=0
             for p in self.vertices:
                 t=Integer(counter)
@@ -90,18 +107,12 @@ class Polyhedra(Group):
                 t.add_updater(update_func_numberVertices(p))
                 self.numbers.append(t)
                 counter+=1
-        todo=self.vertices+self.edges+self.numbers
-        self.faces=[]
-        if self.showFaces:
-            for f in facesList:
-                pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
-                pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
-                pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=True)
-                self.faces.append(pol)
+
 
         self.GrVertices=Group(*self.vertices)
         self.GrEdges=Group(*self.edges)
         self.GrNumbers=Group(*self.numbers)
+        self.GrFaces=Group(*self.faces)
 
 
 
