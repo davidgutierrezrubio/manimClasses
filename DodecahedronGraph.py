@@ -1,13 +1,14 @@
 from manimlib.imports import *
-from Polyhedra import *
+from myProjects.Polyhedra import *
 class DodecahedronGraph(ThreeDScene):
     def construct(self):
         # self.set_camera_orientation(phi=80 * DEGREES,theta=45*DEGREES,distance=6)
 
-        #papel
-        self.add(Square(fill_color=BLUE,fill_opacity=1).scale(3.4))
+        #paper. It seems manilib has problema computing the correct z-order
+        #That's why I had to lower the paper (shift(2*IN))
+        self.add(Square(fill_color=BLUE,fill_opacity=1,shade_in_3d=True).scale(3.4).shift(2*IN))
         self.set_camera_orientation(phi=45*DEGREES)
-        dodecaedro=Dodecahedron(vertexNumbers=False,vertexObject=Dot(fill_color=GOLD,fill_opacity=1))
+        dodecaedro=Dodecahedron(showVertexNumbers=False,vertexObject=Dot(fill_color=GOLD,fill_opacity=1))
         self.add(dodecaedro)
         upperPoints=VGroup(*map(lambda o:dodecaedro.vertices[o],[1,5,9,13,15]))
 
