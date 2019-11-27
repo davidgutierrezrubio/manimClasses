@@ -17,21 +17,12 @@ if __name__ == "__main__":
 class testPol(ThreeDScene):
     def construct(self):
         self.set_camera_orientation(phi=45*DEGREES)
-        co=Cube(showVertexNumbers=True,showVertices=False,showEdges=True)
+        co=Dodecahedron()
         # co=Dodecahedron(showVertexNumbers=False,showVertices=False,showEdges=False,showFaces=True)
         # self.add(Square(fill_color=BLUE,fill_opacity=1,shade_in_3d=True).scale(2))
         self.add(co)
         colores=list(COLOR_MAP.values())
-        anims1=[]
-        anims2=[]
-        for f in co.faces:
-            f.set_color(colores[np.random.randint(0,len(COLOR_MAP))])
-            anims1.append(ApplyMethod(f.scale,.95))
-            anims2.append(ApplyMethod(f.scale,1/.3))
         self.begin_ambient_camera_rotation(rate=0.6)
-        self.play(*anims1,run_time=3)
-        # self.wait(2)
-        # self.play(*anims2,run_time=3)
         self.play(ApplyMethod(co.vertices[0].shift,3*RIGHT))
         self.wait(1)
         self.play(ApplyMethod(co.vertices[0].shift,3*LEFT))
@@ -54,46 +45,52 @@ class Polyhedra(Group):
         "showVertices":True,
         "showEdges": True,
         "showFaces": False, #Faces are still buggy
-        "showVertexNumbers": False
+        "showVertexNumbers": False,
+        "shade_in_3d":False, #Right now, disabled due to
+                            #buggy 3d positioning of manimlib
+        "stick_edges_to_vertices": True #If true, an update function ensures
+                                        #that edges always connect with vertices
     }
-    def __init__(self,pointList,edgeList,facesList,vertexObjectP=Dot(shade_in_3d=True),**kwargs):
+    def __init__(self,pointList,edgeList,facesList,vertexObjectP=None,**kwargs):
         digest_config(self,kwargs)
+
+
         if self.showVertices:
             self.fadeParamVertices=0
         else:
-            self.fadeParamVertices=1
+            self.fadeParamVertices=1#Create vertices, but make them invisible
 
         if self.showEdges:
             self.fadeParamEdges=0
         else:
-            self.fadeParamEdges=1
-
-        if self.showFaces:
-            self.fadeParamFaces=0
-        else:
-            self.fadeParamFaces=1
+            self.fadeParamEdges=1 #Create edges, but make them invisible
 
         self.edgeList=edgeList
-        self.vertexObjectP=vertexObjectP
+        if vertexObjectP is None:
+            self.vertexObjectP=Dot(shade_in_3d=self.shade_in_3d)
+        else:
+            self.vertexObjectP=vertexObjectP
         self.vertices=list(map(lambda a: self.vertexObjectP.copy().fade(self.fadeParamVertices).shift(np.array(a)),pointList))
 
         #Update function to ensure edges are always connected to its vertices
         def update_func_edges(ori,des):
-            return lambda r:r.become(Line(ori.get_center(),des.get_center(),shade_in_3d=True).fade(self.fadeParamEdges))#Become function is problematic
+            return lambda r:r.become(Line(ori.get_center(),des.get_center(),shade_in_3d=self.shade_in_3d).fade(self.fadeParamEdges))#Become function is problematic
         self.edges=[]
         for edge in edgeList:
             ori=self.vertices[edge[0]]
             des=self.vertices[edge[1]]
-            edgeLine=Line(ori,des,shade_in_3d=True).fade(self.fadeParamEdges)
-            edgeLine.add_updater(update_func_edges(ori,des))
+            edgeLine=Line(ori,des,shade_in_3d=self.shade_in_3d).fade(self.fadeParamEdges)
+            if self.stick_edges_to_vertices:
+                edgeLine.add_updater(update_func_edges(ori,des))
             self.edges.append(edgeLine)
 
         self.faces=[]
-        for f in facesList:
-            pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
-            pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
-            pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=True).fade(self.fadeParamFaces)
-            self.faces.append(pol)
+        if self.showFaces:#Right now, I don't create faces objects
+            for f in facesList:
+                pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
+                pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
+                pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=self.shade_in_3d).fade(self.fadeParamFaces)
+                self.faces.append(pol)
 
         self.numbers=[]
         if self.showVertexNumbers:#Add number to each vertex
