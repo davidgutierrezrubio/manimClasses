@@ -15,7 +15,7 @@ class Polyhedra(Group):
     vertexObject is an instace of a MObject, to use for vertex. You can use Sphere() but is slooooow
 
     TODO: Add faces
-    TODO: Implement scale or rotate funcions, subclass MObject instead of Group
+    TODO: Implement scale or rotate funcions, subclass MObject instead of Group?
     """
     CONFIG = {
         "showVertices":True,
@@ -65,7 +65,7 @@ class Polyhedra(Group):
             for f in facesList:
                 pointsFace=list(map(lambda r: self.vertices[r].get_center(),f))
                 pointsFace.append(self.vertices[f[0]].get_center())#Add again first vertex
-                pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=self.shade_in_3d).fade(self.fadeParamFaces)
+                pol=Polygon(*pointsFace,fill_color=GREEN,fill_opacity=1,shade_in_3d=self.shade_in_3d)
                 self.faces.append(pol)
 
         self.numbers=[]
@@ -209,6 +209,38 @@ class Dodecahedron(Polyhedra):
         #Shift on the z-axis to touch the ground
         if self.put_on_ground:
             pointList=list(map(lambda p:[p[0],p[1],p[2]+goldrat],pointList))
+        super().__init__(pointList,edgeList,facesList,**kwargs)
+
+
+
+class Tetrahedron(Polyhedra):
+    """
+    A Tetrahedron
+
+    """
+
+    def __init__(self,**kwargs):
+        pointList=[\
+        [3,3,0],#0
+        [3,-3,0],#1
+        [-3,0,0],#2
+        [0,0,3],#2
+        ]
+        edgeList=[\
+        [0,1],#0
+        [1,2],#1
+        [2,0],#2
+        [0,3],#3
+        [1,3],#4
+        [2,3]#5
+        ]
+        facesList=[\
+        [0,1,2],
+        [0,1,3],
+        [1,2,3],
+        [2,0,3]
+        ]
+        pointList=list(map(lambda p: np.array(p),pointList))#Convert to np.array
         super().__init__(pointList,edgeList,facesList,**kwargs)
 
 
