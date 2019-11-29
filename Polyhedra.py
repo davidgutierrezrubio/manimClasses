@@ -4,30 +4,6 @@ import sys
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, 'c:\\manim\\manim-3feb')
 from manimlib.imports import *
-import myProjects.Polyhedra as pol
-
-
-if __name__ == "__main__":
-    os.chdir('c:\\manim\\manim-3feb')
-    module_name = 'myProjects\\'+ os.path.basename(__file__)
-    print(module_name)
-    command_A = "python -m manim "
-    command_B = module_name +" " +"testPol"+" -pl"
-    os.system(command_A + command_B)
-class testPol(ThreeDScene):
-    def construct(self):
-        self.set_camera_orientation(phi=45*DEGREES)
-        co=Dodecahedron()
-        # co=Dodecahedron(showVertexNumbers=False,showVertices=False,showEdges=False,showFaces=True)
-        # self.add(Square(fill_color=BLUE,fill_opacity=1,shade_in_3d=True).scale(2))
-        self.add(co)
-        colores=list(COLOR_MAP.values())
-        self.begin_ambient_camera_rotation(rate=0.6)
-        self.play(ApplyMethod(co.vertices[0].shift,3*RIGHT))
-        self.wait(1)
-        self.play(ApplyMethod(co.vertices[0].shift,3*LEFT))
-        self.wait(3)
-        self.stop_ambient_camera_rotation()
 
 class Polyhedra(Group):
     """

@@ -1,10 +1,10 @@
 from manimlib.imports import *
-from myProjects.Polyhedra import *
+from Polyhedra import *
 class DodecahedronGraph(ThreeDScene):
     def construct(self):
         # self.set_camera_orientation(phi=80 * DEGREES,theta=45*DEGREES,distance=6)
 
-        #paper. It seems manilib has problema computing the correct z-order
+        #paper. It seems manilib has problems computing the correct z-order
         #That's why I had to lower the paper (shift(2*IN))
         self.add(Square(fill_color=BLUE,fill_opacity=1,shade_in_3d=True).scale(3.4).shift(2*IN))
         self.set_camera_orientation(phi=45*DEGREES)
