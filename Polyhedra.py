@@ -29,7 +29,8 @@ class Polyhedra(Group):
     }
     def __init__(self,pointList,edgeList,facesList,vertexObjectP=None,**kwargs):
         digest_config(self,kwargs)
-
+        self.edgeList=edgeList
+        self.facesList=facesList
 
         if self.showVertices:
             self.fadeParamVertices=0
@@ -97,20 +98,10 @@ class Polyhedra(Group):
     def getCenterOfPolyhedra(self):
         center=functools.reduce(lambda a,b : a+b.get_center(),[np.array([0,0,0])]+self.vertices)
         center=center/len(self.vertices)
-        # center=np.array([0,0,0])
-        # for i in self.vertices:
-        #     c=i.get_center()
-        #     center=center+c
-        #     print(center, c)
-
-        # center=(1/len(self.vertices))*center
         return center
     def scale(self,factorScale):
         ce=self.getCenterOfPolyhedra()
         super().scale(factorScale,about_point=ce)
-                # for v in self.vertices:
-        #     shVec=v.get_center()-ce
-        #     v.shift((factorScale-1)*shVec)
     def getAdjacentVertices(self,vertex,onlyNumbers=False):
         """
 
@@ -133,6 +124,35 @@ class Polyhedra(Group):
         else:
             return list(map(lambda r:self.vertices[r],adjacentList))
 
+    def get_adjacent_faces(self,numFace):
+        #Returns the indexes of all adjacent faces to a given one
+        adFaces=[]
+        faceOr=self.facesList[numFace]
+        counter=0
+        for f in self.facesList:
+            if self.isAdjacent(faceOr,f):
+                adFaces.append(counter)
+            counter+=1
+        #Now I reorder the list so that they form a cycle of adjacent faces
+
+        #First I remove the first
+        adFacesOrdered=[]#The ordered list
+        f=adFaces[0]
+        adFacesOrdered.append(f)
+        adFaces.remove(f)
+        #Now iterate
+        while (len(adFaces)>0):
+            for f2 in adFaces:
+                if self.isAdjacent(self.facesList[f],self.facesList[f2]):#A face cannot be self-adjacent
+                    adFacesOrdered.append(f2)
+                    adFaces.remove(f2)
+                    #Now I use f2 as new face to look for adjacents
+                    f=f2
+                    break
+        return adFacesOrdered
+    def isAdjacent(self,face1,face2):
+        inter=list(set(face1) & set(face2))
+        return (len(inter)==2)
 
 
 
