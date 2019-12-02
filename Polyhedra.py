@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import functools
 import sys
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, 'c:\\manim\\manim-3feb')
@@ -93,6 +93,24 @@ class Polyhedra(Group):
 
     def getVertexObject(self):
         return self.vertexObject.copy()
+
+    def getCenterOfPolyhedra(self):
+        center=functools.reduce(lambda a,b : a+b.get_center(),[np.array([0,0,0])]+self.vertices)
+        center=center/len(self.vertices)
+        # center=np.array([0,0,0])
+        # for i in self.vertices:
+        #     c=i.get_center()
+        #     center=center+c
+        #     print(center, c)
+
+        # center=(1/len(self.vertices))*center
+        return center
+    def scale(self,factorScale):
+        ce=self.getCenterOfPolyhedra()
+        super().scale(factorScale,about_point=ce)
+                # for v in self.vertices:
+        #     shVec=v.get_center()-ce
+        #     v.shift((factorScale-1)*shVec)
     def getAdjacentVertices(self,vertex,onlyNumbers=False):
         """
 
@@ -220,11 +238,12 @@ class Tetrahedron(Polyhedra):
     """
 
     def __init__(self,**kwargs):
+        h=np.sqrt(3)/2
         pointList=[\
-        [1,1,0],#0
-        [0,0,0],#1
-        [0,1,1],#2
-        [1,0,1],#2
+        [0,2*h/3,0],#0
+        [-.5,-h/3,0],#1
+        [.5,-h/3,0],#2
+        [0,0,np.sqrt(2/3)],#2
         ]
         edgeList=[\
         [0,1],#0
