@@ -9,7 +9,11 @@ class Recolocate(Homotopy):
         self.update_function=__class__.get_recolocate_udpate_function(fromA,fromB,toA,toB,scaling,rotate)
         super().__init__(self.update_function,mobject,**kwargs)
     @staticmethod
-    def get_recolocate_udpate_function(fromA,fromB,toA,toB,scaling,rotate):
+    def get_recolocate_udpate_function(fromAp,fromBp,toAp,toBp,scaling,rotate):
+        fromA=__class__.to_point(fromAp)
+        fromB=__class__.to_point(fromBp)
+        toA=__class__.to_point(toAp)
+        toB=__class__.to_point(toBp)
         v1=fromB-fromA
         v2=toB-toA
         transVector=toA-fromA
@@ -29,14 +33,21 @@ class Recolocate(Homotopy):
     def applyRtoObj(self,mob,alpha=1):
         mob.apply_function(lambda p:self.update_function(*p,alpha))
         return mob
-
+    @staticmethod
+    def to_point(p):#If given an mobject, returns its center
+        if isinstance(p,Mobject):
+            return p.get_center()
+        else:
+            return p
     @staticmethod
     def recolocateObject(mobject,fromA,fromB,toA,toB,scaling=True):
         fu=Recolocate.get_recolocate_udpate_function(fromA,fromB,toA,toB,scaling)
         mobject.apply_function(lambda p:fu(*p,1))
 
 class RecolocateFromToSimple(Recolocate):
-    def __init__(self,mobject,fromA,toA,angle,**kwargs):
+    def __init__(self,mobject,fromAp,toAp,angle,**kwargs):
+        fromA=__class__.to_point(fromAp)
+        toA=__class__.to_point(toAp)
         fromB=fromA+RIGHT
         toB=toA+np.array([np.cos(angle),np.sin(angle),0])
         super().__init__(mobject,fromA,fromB,toA,toB,False,**kwargs)

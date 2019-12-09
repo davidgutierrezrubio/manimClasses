@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from manimlib.imports import *
-from Recolocate import *
+from myProjects.Recolocate import *
 class demoRecolocate(Scene):
     def dotWithLabel(self,coords,label,colorPoint):
         vg=VGroup()
@@ -34,7 +34,7 @@ class demoRecolocate(Scene):
         anims=map(lambda r:FadeIn(r),[vgA,vgB,vgC,vgD])
         self.play(*anims)
         self.play(ShowCreation(rec))
-        anim=Recolocate(rec,A,B,C,D)
+        anim=Recolocate(rec,vgA[0],B,C,D)
         self.play(anim)
         self.wait(3)
 

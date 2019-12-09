@@ -137,19 +137,26 @@ class Polyhedra(Group):
 
         #First I remove the first
         adFacesOrdered=[]#The ordered list
-        f=adFaces[0]
+        adFacesC=adFaces[:] #A copy
+        f=adFacesC[0]
         adFacesOrdered.append(f)
-        adFaces.remove(f)
+        adFacesC.remove(f)
         #Now iterate
-        while (len(adFaces)>0):
-            for f2 in adFaces:
+        continueLoop=True
+        while ((len(adFacesC)>0) and (continueLoop==True)):
+            continueLoop=False #If not adjacent faces found, this ensures the loop ends
+            for f2 in adFacesC:
                 if self.isAdjacent(self.facesList[f],self.facesList[f2]):#A face cannot be self-adjacent
                     adFacesOrdered.append(f2)
-                    adFaces.remove(f2)
+                    adFacesC.remove(f2)
+                    continueLoop=True
                     #Now I use f2 as new face to look for adjacents
                     f=f2
                     break
-        return adFacesOrdered
+        if len(adFacesOrdered)!=len(adFaces):
+            return adFaces
+        else:
+            return adFacesOrdered
     def isAdjacent(self,face1,face2):
         inter=list(set(face1) & set(face2))
         return (len(inter)==2)
