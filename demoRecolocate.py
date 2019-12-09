@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from manimlib.imports import *
-from myProjects.Recolocate import *
+from Recolocate import *
 class demoRecolocate(Scene):
     def dotWithLabel(self,coords,label,colorPoint):
         vg=VGroup()
